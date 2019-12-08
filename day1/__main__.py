@@ -6,7 +6,6 @@ def calculate_fuel_recurive(mass):
   fuel = calculate_fuel(mass)
 
   while fuel > 0:
-    print(fuel)
     total_fuel += fuel
     fuel = calculate_fuel(fuel)
   
