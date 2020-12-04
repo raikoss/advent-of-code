@@ -44,13 +44,13 @@ func readFile(path string) []string {
 }
 
 type policy struct {
-	minLength int
-	maxLength int
-	letter    rune
-	password  string
+	firstNumber  int
+	secondNumber int
+	letter       rune
+	password     string
 }
 
-func testPolicy(p policy) bool {
+func testPolicyLength(p policy) bool {
 	matches := 0
 
 	for _, char := range p.password {
@@ -59,28 +59,46 @@ func testPolicy(p policy) bool {
 		}
 	}
 
-	return p.minLength <= matches && matches <= p.maxLength
+	return p.firstNumber <= matches && matches <= p.secondNumber
+}
+
+func testPolicyPosition(p policy) bool {
+	firstNumberMatch := false
+	secondNumberMatch := false
+
+	for index, char := range p.password {
+		if char != p.letter {
+			continue
+		}
+
+		if index+1 == p.firstNumber {
+			firstNumberMatch = true
+		} else if index+1 == p.secondNumber {
+			secondNumberMatch = true
+		}
+	}
+
+	return (firstNumberMatch || secondNumberMatch) && !(firstNumberMatch && secondNumberMatch) // native nand somewhere?
 }
 
 func getPolicy(policyString string) policy {
 	regex := regexp.MustCompile(`(\d+)-(\d+) (\w): (\w+)`)
+
 	passwordBytes := []byte(policyString)
-	minLength, _ := strconv.Atoi(string(regex.FindSubmatch(passwordBytes)[1])) // match 0 is whole string
-	maxLength, _ := strconv.Atoi(string(regex.FindSubmatch(passwordBytes)[2])) // match 0 is whole string
-	letter, _ := utf8.DecodeRune(regex.FindSubmatch(passwordBytes)[3])
+	firstNumber, _ := strconv.Atoi(string(regex.FindSubmatch(passwordBytes)[1]))  // match 0 is whole string
+	secondNumber, _ := strconv.Atoi(string(regex.FindSubmatch(passwordBytes)[2])) // byte[] -> string -> int
+	letter, _ := utf8.DecodeRune(regex.FindSubmatch(passwordBytes)[3])            // byte[] -> string -> int
 	password := string(regex.FindSubmatch(passwordBytes)[4])
 
-	return policy{minLength, maxLength, letter, password}
+	return policy{firstNumber, secondNumber, letter, password}
 }
 
-func main() {
-	policies := readFile("./input.txt")
-
+func getNumLengthPolicies(policies []string) int {
 	var validPasswords []string
 
 	for _, policyString := range policies {
 		policy := getPolicy(policyString)
-		isValid := testPolicy(policy)
+		isValid := testPolicyLength(policy)
 
 		if isValid {
 			validPasswords = append(validPasswords, policy.password)
@@ -88,4 +106,33 @@ func main() {
 	}
 
 	fmt.Printf("Number of valid passwords: %d\n", len(validPasswords))
+
+	return len(validPasswords)
+}
+
+func getNumPositionPolicies(policies []string) int {
+	var validPasswords []string
+
+	for _, policyString := range policies {
+		policy := getPolicy(policyString)
+		isValid := testPolicyPosition(policy)
+
+		if isValid {
+			validPasswords = append(validPasswords, policy.password)
+		}
+	}
+
+	fmt.Printf("Number of valid passwords: %d\n", len(validPasswords))
+
+	return len(validPasswords)
+}
+
+func main() {
+	policies := readFile("./input.txt")
+
+	numLengthPolicies := getNumLengthPolicies(policies)
+	numPositionPolicies := getNumPositionPolicies(policies)
+
+	fmt.Printf("Number of valid passwords with length requirement: %d\n", numLengthPolicies)
+	fmt.Printf("Number of valid passwords with position requirement: %d\n", numPositionPolicies)
 }
