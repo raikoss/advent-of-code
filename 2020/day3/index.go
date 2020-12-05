@@ -40,14 +40,10 @@ func traverseLines(lines []string, down, right int) (treesHit int) {
 		xPos += right
 
 		if xPos >= lenLine {
-			fmt.Printf("Would have hit %d, length of line is %d\n", xPos, lenLine)
 			xPos = xPos - lenLine
-		} else {
-
 		}
 
 		if rune(line[xPos]) == rune('#') {
-			fmt.Printf("There was a tree at %d,%d\n", yPos, xPos)
 			treesHit++
 		}
 	}
@@ -58,7 +54,13 @@ func traverseLines(lines []string, down, right int) (treesHit int) {
 func main() {
 	lines := readFile("./input.txt")
 
-	treesHit := traverseLines(lines, 1, 3)
+	treesHit1 := traverseLines(lines, 1, 1)
+	treesHit2 := traverseLines(lines, 1, 3)
+	treesHit3 := traverseLines(lines, 1, 5)
+	treesHit4 := traverseLines(lines, 1, 7)
+	treesHit5 := traverseLines(lines, 2, 1)
 
-	fmt.Printf("We hit %d trees!\n", treesHit)
+	totalTreesHit := treesHit1 * treesHit2 * treesHit3 * treesHit4 * treesHit5
+
+	fmt.Printf("We hit %d trees!\n", totalTreesHit)
 }
