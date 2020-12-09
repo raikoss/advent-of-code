@@ -67,19 +67,25 @@ func getFirstNonSum(lines []int, preambleLength int) (int, error) {
 func getFirstSetEqualsNonSum(lines []int, nonSum int) (int, error) {
 	var set []int
 
+	// increment starting index by 1 each iteration
 	for startIndex := 0; startIndex < len(lines); startIndex++ {
 		currentSum := 0
 
+		// keep adding to sum and break when going too high, and return set if it equals
 		for i := startIndex; i < len(lines); i++ {
 			currentSum += lines[i]
 
 			if currentSum == nonSum {
 				set = lines[startIndex : i+1]
 				break
+			} else if currentSum > nonSum {
+				break
 			}
 		}
 
+		// set had to be longer than 2 in length
 		if len(set) > 2 {
+			// sort based on size, and add the lowest and highest number together
 			sort.Ints(set)
 
 			return set[0] + set[len(set)-1], nil
