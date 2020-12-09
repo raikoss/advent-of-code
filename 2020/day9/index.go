@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -49,28 +50,43 @@ func isSumOfEarlierNumbers(numbers []int, sum int) bool {
 }
 
 func getFirstNonSum(lines []int, preambleLength int) (int, error) {
-	// first preamble numbers
-	var currentNumbers []int // [including:excluding]
-	notSumNumber := 0
-
 	for i := 0; i < len(lines)-preambleLength; i++ {
 		sumIndex := i + preambleLength
-		currentNumbers = lines[i:sumIndex]
 
 		currentNumber := lines[sumIndex]
-		isSum := isSumOfEarlierNumbers(currentNumbers, currentNumber)
+		isSum := isSumOfEarlierNumbers(lines[i:sumIndex], currentNumber)
 
 		if !isSum {
-			fmt.Printf("Number is at i %d\n", sumIndex)
 			return currentNumber, nil
 		}
 	}
 
-	if notSumNumber == 0 {
-		return 0, fmt.Errorf("no numbers were not equal to the sum of the %d earlier numbers", preambleLength)
+	return 0, fmt.Errorf("no numbers were not equal to the sum of the %d earlier numbers", preambleLength)
+}
+
+func getFirstSetEqualsNonSum(lines []int, nonSum int) (int, error) {
+	var set []int
+
+	for startIndex := 0; startIndex < len(lines); startIndex++ {
+		currentSum := 0
+
+		for i := startIndex; i < len(lines); i++ {
+			currentSum += lines[i]
+
+			if currentSum == nonSum {
+				set = lines[startIndex : i+1]
+				break
+			}
+		}
+
+		if len(set) > 2 {
+			sort.Ints(set)
+
+			return set[0] + set[len(set)-1], nil
+		}
 	}
 
-	return notSumNumber, nil
+	return 0, fmt.Errorf("no set totalled up to %d", nonSum)
 }
 
 func main() {
@@ -81,5 +97,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	setSum, err := getFirstSetEqualsNonSum(lines, nonSum)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Printf("The non-sum number is %d!\n", nonSum)
+	fmt.Printf("The sum of the smallest and largest number in set that equalled non-sum is %d!\n", setSum)
 }
