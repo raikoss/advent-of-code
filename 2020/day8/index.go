@@ -16,10 +16,12 @@ type programData struct {
 	hasSwapped      bool
 }
 
+// was bigger initially, but now it's just a map lol
 type swapData struct {
 	swappedInstructions map[int]bool
-	currentSwapIndex    int
 }
+
+type runnableOperation func(*programData, string)
 
 func readFile(path string) []string {
 	file, err := os.Open(path)
@@ -63,20 +65,21 @@ func getArgumentValues(argument string) (int, int) {
 	return amount, multiplier
 }
 
-func runAccumulate(argument string, data *programData) {
+func runAccumulate(data *programData, argument string) {
 	amount, multiplier := getArgumentValues(argument)
 
 	data.accumulator += multiplier * amount
 	data.currentIndex++
 }
 
-func runJump(argument string, data *programData) {
+func runJump(data *programData, argument string) {
 	amount, multiplier := getArgumentValues(argument)
 
 	data.currentIndex += multiplier * amount
 }
 
-func runNoop(data *programData) {
+// we don't use argument, but pass it to match the other run* functions
+func runNoop(data *programData, argument string) {
 	data.currentIndex++
 }
 
@@ -92,44 +95,36 @@ func runInstruction(instruction string, data *programData) {
 	operation, argument := splitInstruction(instruction)
 
 	if operation == "acc" {
-		runAccumulate(argument, data)
+		runAccumulate(data, argument)
 	} else if operation == "jmp" {
-		runJump(argument, data)
+		runJump(data, argument)
 	} else if operation == "nop" {
-		runNoop(data)
+		runNoop(data, argument)
+	}
+}
+
+// ooooooof
+func trySwap(data *programData, swapData *swapData, argument string, originalFunc, swapFunc runnableOperation) {
+	_, swappedInPreviousIteration := swapData.swappedInstructions[data.currentIndex]
+
+	if !data.hasSwapped && !swappedInPreviousIteration {
+		swapData.swappedInstructions[data.currentIndex] = true
+		data.hasSwapped = true
+		swapFunc(data, argument)
+	} else {
+		originalFunc(data, argument)
 	}
 }
 
 func trySwapRunInstruction(instruction string, data *programData, swapData *swapData) {
 	operation, argument := splitInstruction(instruction)
-	_, swappedInPreviousIteration := swapData.swappedInstructions[data.currentIndex]
-	// fmt.Printf("Running operation '%v'", operation)
 
 	if operation == "acc" {
-		runAccumulate(argument, data)
+		runAccumulate(data, argument)
 	} else if operation == "jmp" {
-		// should maybe be separate function but hey
-		if !data.hasSwapped && !swappedInPreviousIteration {
-			fmt.Printf("Swapping jump with noop at index %d\n", data.currentIndex)
-			swapData.swappedInstructions[data.currentIndex] = true
-			data.hasSwapped = true
-			runNoop(data)
-		} else {
-			runJump(argument, data)
-		}
-
-		swapData.currentSwapIndex++
+		trySwap(data, swapData, argument, runJump, runNoop)
 	} else if operation == "nop" {
-		if !data.hasSwapped && !swappedInPreviousIteration {
-			fmt.Printf("Swapping noop with jump at index %d\n", data.currentIndex)
-			swapData.swappedInstructions[data.currentIndex] = true
-			data.hasSwapped = true
-			runJump(argument, data)
-		} else {
-			runNoop(data)
-		}
-
-		swapData.currentSwapIndex++
+		trySwap(data, swapData, argument, runNoop, runJump)
 	}
 }
 
@@ -159,7 +154,7 @@ func resetProgram(data *programData) {
 }
 
 func getAccumulatorByChangingOperations(lines []string) int {
-	swapData := swapData{make(map[int]bool), 0}
+	swapData := swapData{make(map[int]bool)}
 	data := programData{make(map[int]bool), 0, 0, false}
 
 	// while something is unrun
@@ -173,7 +168,6 @@ func getAccumulatorByChangingOperations(lines []string) int {
 		_, instructionExists := data.ranInstructions[data.currentIndex]
 		// if exists, reset program data, and swapData has received a new entry in tried swap index
 		if instructionExists {
-			fmt.Printf("Resetting instructions\n")
 			resetProgram(&data)
 		} else {
 			data.ranInstructions[data.currentIndex] = true
