@@ -67,23 +67,18 @@ func (s *ship) turn(degrees int) {
 }
 
 func (s *ship) turnWaypoint(w *waypoint, degrees int) {
-	initialAngle := s.angle
-	s.turn(degrees)
-
 	newX := w.x
 	newY := w.y
 
-	angleDifference := getAngleDifference(initialAngle, s.angle)
-
-	if angleDifference == 90 {
-		newX = w.y
-		newY = -w.x
-	} else if angleDifference == 180 {
-		newX = -w.x
-		newY = -w.y
-	} else if angleDifference == 270 {
+	if degrees == -90 || degrees == 270 {
 		newX = -w.y
 		newY = w.x
+	} else if degrees == -180 || degrees == 180 {
+		newX = -w.x
+		newY = -w.y
+	} else if degrees == -270 || degrees == 90 {
+		newX = w.y
+		newY = -w.x
 	}
 
 	w.x = newX
