@@ -63,6 +63,13 @@ func getManhattanDistance(s ship) int {
 
 func main() {
 	lines := readFile("input.txt")
+	// lines := []string{
+	// 	"F10",
+	// 	"N3",
+	// 	"F7",
+	// 	"R90",
+	// 	"F11",
+	// }
 
 	navigatedShip := navigateShip(lines)
 	distance := getManhattanDistance(navigatedShip)

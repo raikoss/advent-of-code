@@ -70,27 +70,24 @@ func (s *ship) turnWaypoint(w *waypoint, degrees int) {
 	initialAngle := s.angle
 	s.turn(degrees)
 
-	deltaX := w.posX - s.posX
-	deltaY := w.posY - s.posY
-
-	newX := w.posX
-	newY := w.posY
+	newX := w.x
+	newY := w.y
 
 	angleDifference := getAngleDifference(initialAngle, s.angle)
 
 	if angleDifference == 90 {
-		newX = s.posX + deltaY
-		newY = s.posY - deltaX
+		newX = w.y
+		newY = -w.x
 	} else if angleDifference == 180 {
-		newX = s.posX - deltaX
-		newY = s.posY - deltaY
+		newX = -w.x
+		newY = -w.y
 	} else if angleDifference == 270 {
-		newX = s.posX - deltaY
-		newY = s.posY + deltaX
+		newX = -w.y
+		newY = w.x
 	}
 
-	w.posX = newX
-	w.posY = newY
+	w.x = newX
+	w.y = newY
 }
 
 func (s *ship) goDirection(letter string, value int) {
@@ -114,18 +111,12 @@ func (s *ship) goForward(value int) {
 }
 
 func (s *ship) goForwardWithWaypoint(w *waypoint, value int) {
-	deltaX := w.posX - s.posX
-	deltaY := w.posY - s.posY
 	// fmt.Printf("Ship at %d,%d, waypoint at %d,%d, moving %d times the difference\n", s.posX, s.posY, w.posX, w.posY, value)
 
-	newX := s.posX + deltaX*value
-	newY := s.posY + deltaY*value
+	newX := s.posX + w.x*value
+	newY := s.posY + w.y*value
 
 	s.posX = newX
 	s.posY = newY
-
-	// keep waypoint the same distance away from ship
-	w.posX = newX + deltaX
-	w.posY = newY + deltaY
 	// fmt.Printf("Ship now at %d,%d\n", s.posX, s.posY)
 }
