@@ -7,15 +7,14 @@ func playGame(startingNumbers []int, endTurn int) int {
 	prevSaidNumber := 0
 	age, exists := 0, false
 
-	for i := 0; i < endTurn; i++ {
+	for i := 0; i < len(startingNumbers); i++ {
 		// say starting number, save which turn it was said
-		if i < len(startingNumbers) {
-			startingNumber := startingNumbers[i]
-			lastMove[startingNumber] = i
-			prevSaidNumber = startingNumber
-			continue
-		}
+		startingNumber := startingNumbers[i]
+		lastMove[startingNumber] = i
+		prevSaidNumber = startingNumber
+	}
 
+	for i := len(startingNumbers); i < endTurn; i++ {
 		if exists {
 			prevSaidNumber = i - age - 1 // -1 since we're 1 turn further than previous number
 		} else {
